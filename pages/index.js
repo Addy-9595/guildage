@@ -3,7 +3,8 @@ import Head from 'next/head';
 
 const SKILLS = ['Florist', 'Chef', 'Writer', 'Coder', 'Designer', 'Analyst', 'Translator', 'Researcher', 'Lawyer', 'Accountant'];
 
-function TaskInterface({ agentName, skill, taskPrompt, setTaskPrompt, taskLoading, taskResult, onExecute }) {
+function TaskInterface({ agentName, skill, taskLoading, taskResult, onExecute }) {
+  const [taskPrompt, setTaskPrompt] = useState('');
   return (
     <div style={{ marginTop: 24, background: '#0d0d14', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 12, padding: 20 }}>
       <div style={{ fontSize: 12, fontFamily: 'IBM Plex Mono', color: '#10b981', marginBottom: 12 }}>
@@ -21,7 +22,7 @@ function TaskInterface({ agentName, skill, taskPrompt, setTaskPrompt, taskLoadin
           resize: 'vertical', marginBottom: 12
         }}
       />
-      <button onClick={onExecute} disabled={taskLoading} style={{
+      <button onClick={() => onExecute(taskPrompt)} disabled={taskLoading} style={{
         padding: '10px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600,
         background: '#10b981', color: '#000', border: 'none',
         fontFamily: 'IBM Plex Mono', opacity: taskLoading ? 0.7 : 1, cursor: 'pointer'
@@ -91,7 +92,6 @@ export default function Home() {
   const [swapResult, setSwapResult] = useState(null);
   const [borrowResult, setBorrowResult] = useState(null);
 
-  const [taskPrompt, setTaskPrompt] = useState('');
   const [taskResult, setTaskResult] = useState(null);
   const [taskLoading, setTaskLoading] = useState(false);
   const [activeAccess, setActiveAccess] = useState(null);
@@ -215,7 +215,7 @@ export default function Home() {
     setLoading(false);
   };
 
-  const handleExecuteTask = async () => {
+  const handleExecuteTask = async (taskPrompt) => {
     if (!taskPrompt) { showToast('Enter a task', 'error'); return; }
     setTaskLoading(true);
     setTaskResult(null);
@@ -538,7 +538,7 @@ export default function Home() {
                     </div>
                     <div style={{ fontSize: 20, fontWeight: 700, color: '#10b981', fontFamily: 'IBM Plex Mono' }}>COST: FREE</div>
                   </div>
-                  {activeAccess && <TaskInterface agentName={activeAccess.agent_name} skill={activeAccess.skill} taskPrompt={taskPrompt} setTaskPrompt={setTaskPrompt} taskLoading={taskLoading} taskResult={taskResult} onExecute={handleExecuteTask} />}
+                  {activeAccess && <TaskInterface agentName={activeAccess.agent_name} skill={activeAccess.skill} taskLoading={taskLoading} taskResult={taskResult} onExecute={handleExecuteTask} />}
                   <button onClick={() => { setSwapResult(null); setSelectedAgent(''); setSkillNeeded(''); setTaskResult(null); setActiveAccess(null); }} style={{ marginTop: 16, width: '100%', padding: '10px', borderRadius: 7, fontSize: 13, background: 'transparent', color: '#888899', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontFamily: 'IBM Plex Mono' }}>New Swap</button>
                 </div>
               )}
@@ -589,7 +589,7 @@ export default function Home() {
                       {borrowResult.access_token || 'Token issued'}
                     </div>
                   </div>
-                  {activeAccess && <TaskInterface agentName={activeAccess.agent_name} skill={activeAccess.skill} taskPrompt={taskPrompt} setTaskPrompt={setTaskPrompt} taskLoading={taskLoading} taskResult={taskResult} onExecute={handleExecuteTask} />}
+                  {activeAccess && <TaskInterface agentName={activeAccess.agent_name} skill={activeAccess.skill} taskLoading={taskLoading} taskResult={taskResult} onExecute={handleExecuteTask} />}
                   <button onClick={() => { setBorrowResult(null); setSelectedAgent(''); setSkillNeeded(''); setTaskResult(null); setActiveAccess(null); }} style={{ marginTop: 16, width: '100%', padding: '10px', borderRadius: 7, fontSize: 13, background: 'transparent', color: '#888899', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontFamily: 'IBM Plex Mono' }}>New Borrow</button>
                 </div>
               )}
