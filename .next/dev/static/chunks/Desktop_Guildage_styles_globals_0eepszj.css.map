@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["file:///Users/nyarinain/Desktop/Guildage/styles/globals.css"],"sourcesContent":["* { box-sizing: border-box; margin: 0; padding: 0; }\nhtml, body { background: #0a0a0f; color: #f0f0f5; font-family: sans-serif; min-height: 100vh; }\n"],"names":[],"mappings":"AAAA;;;;;;AACA"}}]
+}

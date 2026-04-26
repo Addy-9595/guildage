@@ -1,0 +1,48 @@
+{
+  "pages": {
+    "/": [
+      "static/chunks/[root-of-the-server]__090c40d._.js",
+      "static/chunks/0mn7_next_dist_compiled_0wpmsiu._.js",
+      "static/chunks/0mn7_next_dist_shared_lib_13v5-fy._.js",
+      "static/chunks/0mn7_next_dist_client_07q~8g~._.js",
+      "static/chunks/0mn7_next_dist_0pem.~0._.js",
+      "static/chunks/0mn7_next_head_0balrr8.js",
+      "static/chunks/0mn7_react-dom_0c2h1hz._.js",
+      "static/chunks/0mn7_0m0kzrr._.js",
+      "static/chunks/Desktop_Guildage_pages_index_07xvfw~._.js",
+      "static/chunks/turbopack-Desktop_Guildage_pages_index_0j~xt9_._.js"
+    ],
+    "/_app": [
+      "static/chunks/0mn7_next_dist_compiled_0wpmsiu._.js",
+      "static/chunks/0mn7_next_dist_shared_lib_0dxjls7._.js",
+      "static/chunks/0mn7_next_dist_client_07q~8g~._.js",
+      "static/chunks/0mn7_next_dist_0pem.~0._.js",
+      "static/chunks/0mn7_react-dom_0c2h1hz._.js",
+      "static/chunks/0mn7_0m0kzrr._.js",
+      "static/chunks/[root-of-the-server]__0ruiyri._.js",
+      "static/chunks/Desktop_Guildage_styles_globals_0eepszj.css",
+      "static/chunks/Desktop_Guildage_pages__app_07xvfw~._.js",
+      "static/chunks/turbopack-Desktop_Guildage_pages__app_04z-85s._.js"
+    ],
+    "/_error": [
+      "static/chunks/0mn7_next_dist_compiled_0wpmsiu._.js",
+      "static/chunks/0mn7_next_dist_shared_lib_13v5-fy._.js",
+      "static/chunks/0mn7_next_dist_client_07q~8g~._.js",
+      "static/chunks/0mn7_next_dist_07zue4.._.js",
+      "static/chunks/[next]_entry_page-loader_ts_0y57ml7._.js",
+      "static/chunks/0mn7_react-dom_0c2h1hz._.js",
+      "static/chunks/0mn7_0vopma8._.js",
+      "static/chunks/[root-of-the-server]__0gnor93._.js",
+      "static/chunks/Desktop_Guildage_pages__error_07xvfw~._.js",
+      "static/chunks/turbopack-Desktop_Guildage_pages__error_0i2h2hh._.js"
+    ]
+  },
+  "devFiles": [],
+  "polyfillFiles": [],
+  "lowPriorityFiles": [
+    "static/development/_buildManifest.js",
+    "static/development/_ssgManifest.js",
+    "static/development/_clientMiddlewareManifest.js"
+  ],
+  "rootMainFiles": []
+}
