@@ -1,5 +1,5 @@
 const { ensureReady } = require('../../lib/db');
-const { verifyWithArbiter } = require('../../lib/arbiter');
+const { verifyWithArbiter, syncTaskToArbiter } = require('../../lib/arbiter');
 
 function generateId() {
   return Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -49,6 +49,7 @@ module.exports = async function handler(req, res) {
     'INSERT INTO tasks (id, agent_id, description, tokens_earned) VALUES ($1,$2,$3,$4)',
     [task_id, agent_id, description, Math.abs(task_tokens)]
   );
+  syncTaskToArbiter(agent_id, task_id, description, Math.abs(task_tokens), verification);
   const { rows: updRows } = await db.query('SELECT * FROM agents WHERE id = $1', [agent_id]);
   const updated = updRows[0];
 

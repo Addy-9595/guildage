@@ -1,5 +1,6 @@
 const { ensureReady } = require('../../lib/db');
 const { checkPayment, satsToTokens } = require('../../lib/lightning');
+const { syncAgentToArbiter } = require('../../lib/arbiter');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -18,5 +19,14 @@ module.exports = async function handler(req, res) {
   await db.query("UPDATE invoices SET status = 'paid' WHERE id = $1", [invoice_id]);
   const { rows: agentRows } = await db.query('SELECT * FROM agents WHERE id = $1', [agent_id]);
   const agent = agentRows[0];
+  const agentData = {
+    id: agent_id,
+    name: agent.name,
+    owner_name: agent.owner_name,
+    skills: JSON.parse(agent.skills),
+    token_balance: agent.token_balance,
+    deposit_sats: agent.deposit_sats,
+  };
+  syncAgentToArbiter(agentData); // fire and forget — no await
   return res.status(200).json({ success: true, agent: { ...agent, skills: JSON.parse(agent.skills) }, tokens_granted: starting_tokens, message: `Agent ${agent.name} is now active with ${starting_tokens} tokens!` });
 }

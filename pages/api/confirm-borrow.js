@@ -1,5 +1,6 @@
 const { ensureReady } = require('../../lib/db');
 const { checkPayment, createL402Token, satsToTokens } = require('../../lib/lightning');
+const { syncBorrowToArbiter } = require('../../lib/arbiter');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -19,6 +20,7 @@ module.exports = async function handler(req, res) {
   const tokens_paid = satsToTokens(Number(invoice.amount_sats));
   await db.query('UPDATE borrows SET tokens_paid = $1 WHERE id = $2', [tokens_paid, borrow_id]);
   const l402 = await createL402Token({ agent_id: provider.id, skill: borrow.skill_requested, duration_hours: 24 });
+  syncBorrowToArbiter(borrow.id, borrow.borrower_agent_id, borrow.provider_agent_id, borrow.skill_requested, 0);
   return res.status(200).json({ success: true, access_token: l402.access_token, skill: borrow.skill_requested,
     provider_name: provider.name, provider, sats_paid: Number(invoice.amount_sats), valid_hours: 24,
     message: `Lightning payment confirmed. Access granted to ${borrow.skill_requested}.` });
