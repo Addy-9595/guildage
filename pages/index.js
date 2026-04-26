@@ -47,7 +47,7 @@ export default function Home() {
 
   const checkArbiter = useCallback(async () => {
     try {
-      const r = await fetch('https://arbiter-gvm7m9x4o-nishantneus-projects.vercel.app/api/health');
+      const r = await fetch('https://arbiter-mzgk60pt2-nishantneus-projects.vercel.app/api/health');
       setArbiterStatus(r.ok);
     } catch {
       setArbiterStatus(false);
