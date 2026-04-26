@@ -18,7 +18,7 @@ module.exports = async function handler(req, res) {
   const swap_id = generateId();
   await db.query('INSERT INTO swaps (id, requester_agent_id, provider_agent_id, skill_requested) VALUES ($1,$2,$3,$4)',
     [swap_id, requester_agent_id, provider.id, skill_needed]);
-  return res.status(200).json({ swap_id, success: true, cost: 'FREE',
+  return res.status(200).json({ swap_id, success: true, cost: 'FREE', arbiter_enabled: true,
     provider: { id: provider.id, name: provider.name, owner_name: provider.owner_name, skills: JSON.parse(provider.skills), api_key: provider.api_key, model_endpoint: provider.model_endpoint },
     requester_obligation: `${requester.name} must now serve ${provider.owner_name} in return`,
     message: `Swap active!` });

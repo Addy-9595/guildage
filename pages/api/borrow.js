@@ -25,7 +25,7 @@ module.exports = async function handler(req, res) {
     await db.query('INSERT INTO borrows (id, borrower_agent_id, provider_agent_id, skill_requested, tokens_paid) VALUES ($1,$2,$3,$4,$5)',
       [borrow_id, borrower_agent_id, provider.id, skill_needed, borrow_tokens]);
     const l402 = await createL402Token({ agent_id: provider.id, skill: skill_needed, duration_hours: 24 });
-    return res.status(200).json({ borrow_id, payment_method: 'tokens', tokens_deducted: borrow_tokens, access_token: l402.access_token,
+    return res.status(200).json({ borrow_id, payment_method: 'tokens', tokens_deducted: borrow_tokens, access_token: l402.access_token, arbiter_enabled: true,
       provider: { id: provider.id, name: provider.name, skills: JSON.parse(provider.skills), api_key: provider.api_key, model_endpoint: provider.model_endpoint },
       message: `Access granted. ${borrow_tokens} tokens deducted.` });
   }

@@ -9,6 +9,7 @@ export default function Home() {
   const [activity, setActivity] = useState({ swaps: [], borrows: [] });
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [arbiterStatus, setArbiterStatus] = useState(null); // null=checking, true=online, false=offline
 
   const [regName, setRegName] = useState('');
   const [regOwner, setRegOwner] = useState('');
@@ -44,12 +45,23 @@ export default function Home() {
     setActivity(d);
   }, []);
 
+  const checkArbiter = useCallback(async () => {
+    try {
+      const r = await fetch('https://arbiter-gvm7m9x4o-nishantneus-projects.vercel.app/api/health');
+      setArbiterStatus(r.ok);
+    } catch {
+      setArbiterStatus(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchAgents();
     fetchActivity();
+    checkArbiter();
     const interval = setInterval(fetchAgents, 8000);
-    return () => clearInterval(interval);
-  }, [fetchAgents, fetchActivity]);
+    const arbiterInterval = setInterval(checkArbiter, 30000);
+    return () => { clearInterval(interval); clearInterval(arbiterInterval); };
+  }, [fetchAgents, fetchActivity, checkArbiter]);
 
   const handleRegister = async () => {
     if (!regName || !regOwner || !regSkills.length) { showToast('Fill all fields', 'error'); return; }
@@ -149,12 +161,24 @@ export default function Home() {
         task_prompt: taskPrompt,
         agent_name: activeAccess?.agent_name,
         api_key: agentData?.api_key || activeAccess?.api_key,
-        model_endpoint: agentData?.model_endpoint || activeAccess?.model_endpoint
+        model_endpoint: agentData?.model_endpoint || activeAccess?.model_endpoint,
+        agent_id: agentData?.id
       })
     });
     const d = await r.json();
-    if (r.ok) setTaskResult(d);
-    else showToast(d.error, 'error');
+    if (r.ok) {
+      setTaskResult(d);
+      if (d.verification) {
+        const v = d.verification;
+        showToast(
+          v.passed
+            ? `Arbiter: Score ${v.score}/100 — +${v.token_reward} tokens — ${v.trust_tier}`
+            : `Arbiter flagged: Score ${v.score}/100 — -${v.token_penalty} tokens`,
+          v.passed ? 'success' : 'error'
+        );
+      }
+      await fetchAgents();
+    } else showToast(d.error, 'error');
     setTaskLoading(false);
   };
 
@@ -166,7 +190,7 @@ export default function Home() {
       body: JSON.stringify({ agent_id, description: tasks[Math.floor(Math.random() * tasks.length)] })
     });
     const d = await r.json();
-    showToast(`+${d.tokens_earned} tokens earned!`);
+    showToast(d.message, d.verification && !d.verification.passed ? 'error' : 'success');
     await fetchAgents();
   };
 
@@ -176,6 +200,14 @@ export default function Home() {
     if (balance < 500) return { label: 'T1', color: '#6366f1' };
     if (balance < 2000) return { label: 'T2', color: '#06b6d4' };
     return { label: 'T3', color: '#f59e0b' };
+  };
+
+  const getTrustTier = (tokenBalance, taskCount) => {
+    if (taskCount >= 10 && tokenBalance >= 5000) return { label: 'ELITE', color: '#8b5cf6' };
+    if (taskCount >= 5 && tokenBalance >= 2000) return { label: 'TRUSTED', color: '#10b981' };
+    if (taskCount >= 2 && tokenBalance >= 500) return { label: 'STANDARD', color: '#f59e0b' };
+    if (taskCount >= 1) return { label: 'PROBATION', color: '#f97316' };
+    return { label: 'UNTRUSTED', color: '#ef4444' };
   };
 
   const TaskInterface = ({ agentName, skill }) => (
@@ -210,6 +242,35 @@ export default function Home() {
           <div style={{ fontSize: 14, lineHeight: 1.7, color: '#f0f0f5', whiteSpace: 'pre-wrap' }}>
             {taskResult.result}
           </div>
+          {taskResult.verification && (
+            <div style={{
+              marginTop: 12, padding: '10px 14px', borderRadius: 6,
+              background: taskResult.verification.passed ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+              border: `1px solid ${taskResult.verification.passed ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}`,
+              fontFamily: 'IBM Plex Mono', fontSize: 11
+            }}>
+              <span style={{ color: taskResult.verification.passed ? '#10b981' : '#ef4444' }}>
+                {taskResult.verification.passed ? '✓ Arbiter verified' : '✗ Arbiter flagged'}
+              </span>
+              <span style={{ color: '#888899', marginLeft: 8 }}>
+                Score: {taskResult.verification.score}/100
+              </span>
+              <span style={{
+                marginLeft: 8, padding: '1px 6px', borderRadius: 3,
+                background: 'rgba(255,255,255,0.06)', color: '#c4b5fd'
+              }}>
+                {taskResult.verification.trust_tier}
+              </span>
+              <span style={{ color: taskResult.verification.passed ? '#10b981' : '#ef4444', marginLeft: 8 }}>
+                {taskResult.verification.passed ? `+${taskResult.verification.token_reward}` : `-${taskResult.verification.token_penalty}`} tokens
+              </span>
+              {taskResult.verification.reasoning && (
+                <div style={{ color: '#666677', marginTop: 6, fontSize: 10, lineHeight: 1.5 }}>
+                  {taskResult.verification.reasoning}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -255,6 +316,20 @@ export default function Home() {
               background: 'rgba(16,185,129,0.1)', padding: '2px 8px', borderRadius: 4,
               border: '1px solid rgba(16,185,129,0.2)'
             }}>⚡ Lightning</span>
+            <span style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              fontSize: 11, fontFamily: 'IBM Plex Mono',
+              color: arbiterStatus === null ? '#888899' : arbiterStatus ? '#10b981' : '#ef4444',
+              background: arbiterStatus === null ? 'rgba(136,136,153,0.08)' : arbiterStatus ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+              padding: '2px 8px', borderRadius: 4,
+              border: `1px solid ${arbiterStatus === null ? 'rgba(136,136,153,0.2)' : arbiterStatus ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`
+            }}>
+              <span style={{
+                width: 6, height: 6, borderRadius: '50%', display: 'inline-block',
+                background: arbiterStatus === null ? '#888899' : arbiterStatus ? '#10b981' : '#ef4444'
+              }} />
+              {arbiterStatus === null ? 'Arbiter checking...' : arbiterStatus ? 'Arbiter connected' : 'Arbiter offline — using local scoring'}
+            </span>
           </div>
           <nav style={{ display: 'flex', gap: 4 }}>
             {['dashboard', 'register', 'swap', 'borrow'].map(t => (
@@ -294,6 +369,7 @@ export default function Home() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
                   {agents.map(agent => {
                     const tier = tierLabel(agent.token_balance);
+                    const trustTier = getTrustTier(agent.token_balance, agent.task_count);
                     return (
                       <div key={agent.id} style={{ background: '#12121a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 20, position: 'relative', overflow: 'hidden' }}>
                         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${tier.color}, transparent)` }} />
@@ -302,7 +378,10 @@ export default function Home() {
                             <div style={{ fontWeight: 600, fontSize: 16, fontFamily: 'IBM Plex Mono', marginBottom: 2 }}>{agent.name}</div>
                             <div style={{ fontSize: 12, color: '#888899' }}>owned by {agent.owner_name}</div>
                           </div>
-                          <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 4, background: `${tier.color}20`, color: tier.color, border: `1px solid ${tier.color}40`, fontFamily: 'IBM Plex Mono' }}>{tier.label}</span>
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                            <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 4, background: `${tier.color}20`, color: tier.color, border: `1px solid ${tier.color}40`, fontFamily: 'IBM Plex Mono' }}>{tier.label}</span>
+                            <span style={{ fontSize: 10, fontWeight: 600, padding: '3px 7px', borderRadius: 4, background: `${trustTier.color}18`, color: trustTier.color, border: `1px solid ${trustTier.color}35`, fontFamily: 'IBM Plex Mono' }} title="Local trust tier estimate — real score from Arbiter during verification">{trustTier.label}</span>
+                          </div>
                         </div>
                         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
                           {agent.skills.map(s => (
