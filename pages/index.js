@@ -3,6 +3,74 @@ import Head from 'next/head';
 
 const SKILLS = ['Florist', 'Chef', 'Writer', 'Coder', 'Designer', 'Analyst', 'Translator', 'Researcher', 'Lawyer', 'Accountant'];
 
+function TaskInterface({ agentName, skill, taskPrompt, setTaskPrompt, taskLoading, taskResult, onExecute }) {
+  return (
+    <div style={{ marginTop: 24, background: '#0d0d14', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 12, padding: 20 }}>
+      <div style={{ fontSize: 12, fontFamily: 'IBM Plex Mono', color: '#10b981', marginBottom: 12 }}>
+        ⚡ {agentName} is ready — skill: {skill}
+      </div>
+      <textarea
+        value={taskPrompt}
+        onChange={e => setTaskPrompt(e.target.value)}
+        placeholder={`Give ${agentName} a task...`}
+        rows={3}
+        style={{
+          width: '100%', padding: '10px 14px', borderRadius: 8, fontSize: 14,
+          background: '#12121a', border: '1px solid rgba(255,255,255,0.08)',
+          color: '#f0f0f5', fontFamily: 'IBM Plex Sans, sans-serif',
+          resize: 'vertical', marginBottom: 12
+        }}
+      />
+      <button onClick={onExecute} disabled={taskLoading} style={{
+        padding: '10px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+        background: '#10b981', color: '#000', border: 'none',
+        fontFamily: 'IBM Plex Mono', opacity: taskLoading ? 0.7 : 1, cursor: 'pointer'
+      }}>
+        {taskLoading ? 'Running...' : '▶ Execute Task'}
+      </button>
+      {taskResult && (
+        <div style={{ marginTop: 16, background: '#12121a', borderRadius: 8, padding: 16, border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ fontSize: 11, color: '#888899', fontFamily: 'IBM Plex Mono', marginBottom: 8 }}>
+            {taskResult.agent_name} ({taskResult.skill}) responded:
+          </div>
+          <div style={{ fontSize: 14, lineHeight: 1.7, color: '#f0f0f5', whiteSpace: 'pre-wrap' }}>
+            {taskResult.result}
+          </div>
+          {taskResult.verification && (
+            <div style={{
+              marginTop: 12, padding: '10px 14px', borderRadius: 6,
+              background: taskResult.verification.passed ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+              border: `1px solid ${taskResult.verification.passed ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}`,
+              fontFamily: 'IBM Plex Mono', fontSize: 11
+            }}>
+              <span style={{ color: taskResult.verification.passed ? '#10b981' : '#ef4444' }}>
+                {taskResult.verification.passed ? '✓ Arbiter verified' : '✗ Arbiter flagged'}
+              </span>
+              <span style={{ color: '#888899', marginLeft: 8 }}>
+                Score: {taskResult.verification.score}/100
+              </span>
+              <span style={{
+                marginLeft: 8, padding: '1px 6px', borderRadius: 3,
+                background: 'rgba(255,255,255,0.06)', color: '#c4b5fd'
+              }}>
+                {taskResult.verification.trust_tier}
+              </span>
+              <span style={{ color: taskResult.verification.passed ? '#10b981' : '#ef4444', marginLeft: 8 }}>
+                {taskResult.verification.passed ? `+${taskResult.verification.token_reward}` : `-${taskResult.verification.token_penalty}`} tokens
+              </span>
+              {taskResult.verification.reasoning && (
+                <div style={{ color: '#666677', marginTop: 6, fontSize: 10, lineHeight: 1.5 }}>
+                  {taskResult.verification.reasoning}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Home() {
   const [tab, setTab] = useState('dashboard');
   const [agents, setAgents] = useState([]);
@@ -209,72 +277,6 @@ export default function Home() {
     if (taskCount >= 1) return { label: 'PROBATION', color: '#f97316' };
     return { label: 'UNTRUSTED', color: '#ef4444' };
   };
-
-  const TaskInterface = ({ agentName, skill }) => (
-    <div style={{ marginTop: 24, background: '#0d0d14', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 12, padding: 20 }}>
-      <div style={{ fontSize: 12, fontFamily: 'IBM Plex Mono', color: '#10b981', marginBottom: 12 }}>
-        ⚡ {agentName} is ready — skill: {skill}
-      </div>
-      <textarea
-        value={taskPrompt}
-        onChange={e => setTaskPrompt(e.target.value)}
-        placeholder={`Give ${agentName} a task...`}
-        rows={3}
-        style={{
-          width: '100%', padding: '10px 14px', borderRadius: 8, fontSize: 14,
-          background: '#12121a', border: '1px solid rgba(255,255,255,0.08)',
-          color: '#f0f0f5', fontFamily: 'IBM Plex Sans, sans-serif',
-          resize: 'vertical', marginBottom: 12
-        }}
-      />
-      <button onClick={handleExecuteTask} disabled={taskLoading} style={{
-        padding: '10px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600,
-        background: '#10b981', color: '#000', border: 'none',
-        fontFamily: 'IBM Plex Mono', opacity: taskLoading ? 0.7 : 1, cursor: 'pointer'
-      }}>
-        {taskLoading ? 'Running...' : '▶ Execute Task'}
-      </button>
-      {taskResult && (
-        <div style={{ marginTop: 16, background: '#12121a', borderRadius: 8, padding: 16, border: '1px solid rgba(255,255,255,0.06)' }}>
-          <div style={{ fontSize: 11, color: '#888899', fontFamily: 'IBM Plex Mono', marginBottom: 8 }}>
-            {taskResult.agent_name} ({taskResult.skill}) responded:
-          </div>
-          <div style={{ fontSize: 14, lineHeight: 1.7, color: '#f0f0f5', whiteSpace: 'pre-wrap' }}>
-            {taskResult.result}
-          </div>
-          {taskResult.verification && (
-            <div style={{
-              marginTop: 12, padding: '10px 14px', borderRadius: 6,
-              background: taskResult.verification.passed ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
-              border: `1px solid ${taskResult.verification.passed ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}`,
-              fontFamily: 'IBM Plex Mono', fontSize: 11
-            }}>
-              <span style={{ color: taskResult.verification.passed ? '#10b981' : '#ef4444' }}>
-                {taskResult.verification.passed ? '✓ Arbiter verified' : '✗ Arbiter flagged'}
-              </span>
-              <span style={{ color: '#888899', marginLeft: 8 }}>
-                Score: {taskResult.verification.score}/100
-              </span>
-              <span style={{
-                marginLeft: 8, padding: '1px 6px', borderRadius: 3,
-                background: 'rgba(255,255,255,0.06)', color: '#c4b5fd'
-              }}>
-                {taskResult.verification.trust_tier}
-              </span>
-              <span style={{ color: taskResult.verification.passed ? '#10b981' : '#ef4444', marginLeft: 8 }}>
-                {taskResult.verification.passed ? `+${taskResult.verification.token_reward}` : `-${taskResult.verification.token_penalty}`} tokens
-              </span>
-              {taskResult.verification.reasoning && (
-                <div style={{ color: '#666677', marginTop: 6, fontSize: 10, lineHeight: 1.5 }}>
-                  {taskResult.verification.reasoning}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
 
   return (
     <>
@@ -535,7 +537,7 @@ export default function Home() {
                     </div>
                     <div style={{ fontSize: 20, fontWeight: 700, color: '#10b981', fontFamily: 'IBM Plex Mono' }}>COST: FREE</div>
                   </div>
-                  {activeAccess && <TaskInterface agentName={activeAccess.agent_name} skill={activeAccess.skill} />}
+                  {activeAccess && <TaskInterface agentName={activeAccess.agent_name} skill={activeAccess.skill} taskPrompt={taskPrompt} setTaskPrompt={setTaskPrompt} taskLoading={taskLoading} taskResult={taskResult} onExecute={handleExecuteTask} />}
                   <button onClick={() => { setSwapResult(null); setSelectedAgent(''); setSkillNeeded(''); setTaskResult(null); setActiveAccess(null); }} style={{ marginTop: 16, width: '100%', padding: '10px', borderRadius: 7, fontSize: 13, background: 'transparent', color: '#888899', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontFamily: 'IBM Plex Mono' }}>New Swap</button>
                 </div>
               )}
@@ -586,7 +588,7 @@ export default function Home() {
                       {borrowResult.access_token || 'Token issued'}
                     </div>
                   </div>
-                  {activeAccess && <TaskInterface agentName={activeAccess.agent_name} skill={activeAccess.skill} />}
+                  {activeAccess && <TaskInterface agentName={activeAccess.agent_name} skill={activeAccess.skill} taskPrompt={taskPrompt} setTaskPrompt={setTaskPrompt} taskLoading={taskLoading} taskResult={taskResult} onExecute={handleExecuteTask} />}
                   <button onClick={() => { setBorrowResult(null); setSelectedAgent(''); setSkillNeeded(''); setTaskResult(null); setActiveAccess(null); }} style={{ marginTop: 16, width: '100%', padding: '10px', borderRadius: 7, fontSize: 13, background: 'transparent', color: '#888899', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontFamily: 'IBM Plex Mono' }}>New Borrow</button>
                 </div>
               )}
