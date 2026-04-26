@@ -141,6 +141,7 @@ export default function Home() {
       body: JSON.stringify({ name: regName, owner_name: regOwner, skills: regSkills, api_key: regApiKey, model_endpoint: regEndpoint })
     });
     const d = await r.json();
+    if (!r.ok) { showToast(d.error || 'Registration failed', 'error'); setLoading(false); return; }
     setPendingAgent(d);
     setLoading(false);
   };
